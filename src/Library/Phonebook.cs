@@ -36,15 +36,19 @@ namespace Library
         /// Añade un nuevo contacto al directorio de contactos.
         /// </summary>
         /// <param name="contacto"></param>
-        public void AddContact (Contact contacto) {
-            this.persons.Add (contacto);
+        public Contact AddContact (string name)
+        {
+            Contact newContact = new Contact(name);
+            this.persons.Add(newContact);
+            return newContact;
         }
 
         /// <summary>
         /// Remueve un cotacto del directorio de contacto.
         /// </summary>
         /// <param name="contacto"></param>
-        public void RemoveContact (Contact contacto) {
+        public void RemoveContact (Contact contacto)
+        {
             this.persons.Remove (contacto);
         }
 
@@ -52,29 +56,21 @@ namespace Library
         /// Envía un email con un cuerpo que se pasa como parámetro, a uno o varios contactos de un directorio.
         /// </summary>
         /// <param name="toList">Lista con los nombres de cotactos.</param>
-        /// <param name="email">Objeto Email para el envío.</param>
+        /// <param name="channel">Canal para el envío del mensaje.</param>
         /// <param name="message">Cuerpo del email.</param>
-        public void SendEmail(string[] toList, Email email, string message)
+        public void Send(string[] toList, IMessageChannel channel, string text)
         {
-            List<Contact> contactsE = this.Search(toList);
-            foreach (Contact contactE in contactsE) {
-                MessageEmail messageE = new MessageEmail (this.Owner.Email, contactE.Email, message);
-                email.Send (messageE);
-            }
-        }
+            Message message;
+            List<Contact> sendTo = this.Search(toList);
 
-        /// <summary>
-        /// Envía un mensaje de Whatsapp con un cuerpo que se pasa como parámetro, a uno o varios contactos de un directorio.
-        /// </summary>
-        /// <param name="toList">Lista con los nombres de cotactos.</param>
-        /// <param name="whatsApp">Objeto WhatsApp para el envío.</param>
-        /// <param name="message">Cuerpo del email.</param>
-        public void SendWhatsapp(string[] toList, WhatsApp whatsApp, string message)
-        {
-            List<Contact> contactsW = this.Search (toList);
-            foreach (Contact contactW in contactsW) {
-                MessageEmail messageW = new MessageEmail (this.Owner.Phone, contactW.Phone, message);
-                whatsApp.Send (messageW);
+            foreach (Contact person in sendTo)
+            {
+                if (channel != null)
+                {
+                    message = channel.CreateMessage(this.Owner, person, text);
+                    message.Text = text;
+                    channel.Send(message);
+                }
             }
         }
     }
